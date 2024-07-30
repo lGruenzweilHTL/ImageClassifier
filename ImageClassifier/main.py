@@ -2,12 +2,15 @@
 from torch import nn, save, load
 from torch.optim import Adam
 from torch.utils.data import DataLoader
-from torchvision import datasets
 from torchvision.transforms import Resize, ToTensor
 from PIL import Image
 
-train = datasets.MNIST(root="data", download=True, train=True, transform=ToTensor())
-dataset = DataLoader(train, 32)
+from ImageClassifier.data import CustomDataset
+
+# train = datasets.MNIST(root="data", download=True, train=True, transform=ToTensor())
+labels = [0, 1, 2]
+train = CustomDataset("data/custom", labels, transform=ToTensor())
+dataset = DataLoader(train, batch_size=32, shuffle=True)
 
 
 # Image classifier nn
@@ -59,8 +62,12 @@ def start_train():
 
 
 def load_model_state(model, path):
-    model.load_state_dict(load(path))
+    model.load_state_dict(load(path, weights_only=False))
     model.eval()
+
+
+def translate_label(label):
+    return ["Quarter", "Half", "Full"][label]
 
 
 def run():
@@ -77,7 +84,8 @@ def run():
     pred_prob = nn.Softmax(dim=1)(logits)
     y_pred = pred_prob.argmax(1)
 
-    print(f"Predicted: {y_pred}")
+    pred = translate_label(y_pred.item())
+    print(f"Predicted: {pred}")
 
 
 if __name__ == "__main__":
