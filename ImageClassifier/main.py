@@ -5,11 +5,12 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import Resize, ToTensor
 from PIL import Image
 
-from ImageClassifier.data import CustomDataset
+from data import CustomDataset
+from segmentor import segment_notes
 
-# train = datasets.MNIST(root="data", download=True, train=True, transform=ToTensor())
+# train = datasets.MNIST(root="segmentation", download=True, train=True, transform=ToTensor())
 labels = [2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0]  # 0 -> Quarter, 1 -> Half, 2 -> Full
-train = CustomDataset("data/custom", labels, transform=ToTensor())
+train = CustomDataset("data/classification", labels, transform=ToTensor())
 dataset = DataLoader(train, batch_size=32, shuffle=True)
 
 
@@ -70,14 +71,18 @@ def translate_label(label):
     return ["Quarter", "Half", "Full"][label]
 
 
-def run():
+def run(image_path=None):
+    img_path = image_path or input("Enter image path: ")
+    img = Image.open(img_path)
+    run_i(img)
+
+
+def run_i(img):
     # Load model state
     model_path = "model_state.pt"
     load_model_state(clf, model_path)
 
-    # Evaluate image
-    img_path = input("Enter image path: ")
-    img = Image.open(img_path).convert("L")
+    img = img.convert("L")
     img = Resize((28, 28))(img)
     img_tensor = ToTensor()(img).unsqueeze(0).to(run_type)
     logits = clf(img_tensor)
@@ -89,8 +94,12 @@ def run():
 
 
 if __name__ == "__main__":
-    inp = input("train or test? ").lower()
+    inp = input("train or test or eval path? ").lower()
     if inp == "train":
         start_train()
     elif inp == "test":
         run()
+    else:
+        notes = segment_notes(inp, True)
+        for n in notes:
+            run_i(n)
