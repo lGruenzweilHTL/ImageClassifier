@@ -1,4 +1,5 @@
 # Import dependencies
+import torch.cuda
 from torch import nn, save, load
 from torch.optim import Adam
 from torch.utils.data import DataLoader
@@ -7,6 +8,7 @@ from PIL import Image
 
 from classification_dataset import ClassificationData
 from segmentor import segment_notes
+from note_player import play_frequency
 
 # train = datasets.MNIST(root="segmentation", download=True, train=True, transform=ToTensor())
 labels = [2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0]  # 0 -> Quarter, 1 -> Half, 2 -> Full
@@ -35,8 +37,8 @@ class ImageClassifier(nn.Module):
 
 
 # Instance nn, loss, optimizer
-run_type = "cpu"  # 'cpu' -> run on cpu; 'cuda' -> run on gpu using cuda
-clf = ImageClassifier().to(run_type)
+device = ("cuda" if torch.cuda.is_available() else "cpu")
+clf = ImageClassifier().to(device)
 opt = Adam(clf.parameters(), lr=1e-3)
 loss_fn = nn.CrossEntropyLoss()
 
@@ -46,7 +48,7 @@ def start_train():
     for epoch in range(int(input("Enter training epochs: "))):
         for batch in dataset:
             x, y = batch
-            x, y = x.to(run_type), y.to(run_type)
+            x, y = x.to(device), y.to(device)
             yhat = clf(x)
             loss = loss_fn(yhat, y)
 
@@ -84,13 +86,14 @@ def run_i(img):
 
     img = img.convert("L")
     img = Resize((28, 28))(img)
-    img_tensor = ToTensor()(img).unsqueeze(0).to(run_type)
+    img_tensor = ToTensor()(img).unsqueeze(0).to(device)
     logits = clf(img_tensor)
     pred_prob = nn.Softmax(dim=1)(logits)
     y_pred = pred_prob.argmax(1)
 
     pred = translate_label(y_pred.item())
     print(f"Predicted: {pred}")
+    return y_pred.item()
 
 
 if __name__ == "__main__":
@@ -102,4 +105,5 @@ if __name__ == "__main__":
     else:
         notes = segment_notes(inp, True)
         for n in notes:
-            run_i(n)
+            duration = 1 / [4, 2, 1][run_i(n)]
+            play_frequency(440, duration)
