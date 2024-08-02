@@ -1,12 +1,11 @@
 import torch
-import torchvision.transforms
 from torch.utils.data import Dataset
 from torchvision.transforms import Resize
 from PIL import Image
 import os
 
 
-class CustomDataset(Dataset):
+class ClassificationData(Dataset):
     def __init__(self, image_dir, labels, transform=None):
         self.image_dir = image_dir
         self.labels = labels

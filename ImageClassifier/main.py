@@ -5,12 +5,12 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import Resize, ToTensor
 from PIL import Image
 
-from data import CustomDataset
+from classification_dataset import ClassificationData
 from segmentor import segment_notes
 
 # train = datasets.MNIST(root="segmentation", download=True, train=True, transform=ToTensor())
 labels = [2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0]  # 0 -> Quarter, 1 -> Half, 2 -> Full
-train = CustomDataset("data/classification", labels, transform=ToTensor())
+train = ClassificationData("data/classification", labels, transform=ToTensor())
 dataset = DataLoader(train, batch_size=32, shuffle=True)
 
 
