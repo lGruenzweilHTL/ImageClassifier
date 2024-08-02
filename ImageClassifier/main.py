@@ -8,7 +8,7 @@ from PIL import Image
 from ImageClassifier.data import CustomDataset
 
 # train = datasets.MNIST(root="data", download=True, train=True, transform=ToTensor())
-labels = [0, 1, 2]
+labels = [2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0]  # 0 -> Quarter, 1 -> Half, 2 -> Full
 train = CustomDataset("data/custom", labels, transform=ToTensor())
 dataset = DataLoader(train, batch_size=32, shuffle=True)
 
